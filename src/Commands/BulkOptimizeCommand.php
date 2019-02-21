@@ -56,7 +56,7 @@ class BulkOptimizeCommand extends Command implements LoggerInterface
             /**
              * The config options
              */
-            ->addOption('source', null, InputOption::VALUE_REQUIRED, 'The source folder.')
+            ->addOption('source', null, InputOption::VALUE_OPTIONAL, 'The source folder.')
             ->addOption('dest', null, InputOption::VALUE_REQUIRED, 'The destination folder.')
             ->addOption('height', null, InputOption::VALUE_OPTIONAL, 'The max height of the image. Defaults to: 1600px')
             ->addOption('width', null, InputOption::VALUE_OPTIONAL, 'The max width of the image. Defaults to: 1600px');
@@ -76,7 +76,7 @@ class BulkOptimizeCommand extends Command implements LoggerInterface
         $this->output = $output;
 
         $optimizer = new BulkOptimizer([
-            'source' => $input->getOption('source'),
+            'source' => $input->getOption('source') ?? $input->getOption('dest'),
             'dest' => $input->getOption('dest'),
             'width' => $input->getOption('width'),
             'height' => $input->getOption('height'),

@@ -4,14 +4,10 @@
 require dirname(__DIR__) . '/vendor/autoload.php';
 
 use Slick\Image\CommandLoader\FactoryCommandLoader;
-use Slick\Image\Commands;
 use Symfony\Component\Console\Application;
 
-$commandLoader = new FactoryCommandLoader([
-    'slick-image:bulk-optimize' => Commands\BulkOptimizeCommand::class,
-]);
+$commandLoader = new FactoryCommandLoader(require_once dirname(__DIR__) . '/config/commands.php');
 
 $application = new Application();
 $application->setCommandLoader($commandLoader);
-
 $application->run();

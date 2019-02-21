@@ -10,6 +10,7 @@ namespace Slick\Image;
 
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerTrait;
+use Slick\Image\Finder\Filters\MimeTypeFilter;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Finder\Finder;
 
@@ -46,7 +47,6 @@ class BulkOptimizer
      * @var array
      */
     protected $required = [
-        'source',
         'dest'
     ];
 
@@ -56,8 +56,24 @@ class BulkOptimizer
     protected $allowedMimeTypes = [
         'image/png',
         'image/jpeg',
-        'image/jpg'
+        'image/jpg',
+        'image/svg+xml',
+        'image/gif',
     ];
+
+    /**
+     * The source folder that will copied to destination and be optimized and resized
+     *
+     * @var string
+     */
+    protected $source;
+
+    /**
+     * The destination folder. Where all the images will be optimized.
+     *
+     * @var string
+     */
+    protected $dest;
 
     /**
      * BulkOptimizer constructor.
@@ -67,6 +83,8 @@ class BulkOptimizer
     {
         $this->setConfig($config);
         $this->logger = new DummyLogger();
+        $this->source = $this->config('source', $this->config('dest'));
+        $this->dest = $this->config('dest');
     }
 
     /**
@@ -74,16 +92,13 @@ class BulkOptimizer
      */
     public function optimize()
     {
-        $source = $this->config('source');
-        $dest = $this->config('dest');
-
         // Only copies the folder if the destination is different than the source
-        if ($source !== $dest) {
+        if ($this->source !== $this->dest) {
             // Copy folder to destination
             $this->copyFolder();
         }
 
-        $files = $this->files($dest);
+        $files = $this->files($this->dest);
 
         // Initializes the progress bar
         $this->progressBarMaxSteps($files->count());
@@ -119,11 +134,8 @@ class BulkOptimizer
      */
     protected function copyFolder()
     {
-        $source = $this->config('source');
-        $dest = $this->config('dest');
-
         $filesystem = new Filesystem();
-        $filesystem->mirror($source, $dest);
+        $filesystem->mirror($this->source, $this->dest);
     }
 
     /**
@@ -150,25 +162,9 @@ class BulkOptimizer
         $finder = new Finder();
         $finder->files()
             ->ignoreDotFiles(true)
-            ->filter($this->mimeTypeFilter($this->allowedMimeTypes))
+            ->filter(MimeTypeFilter::get(($this->allowedMimeTypes)))
             ->in($dest);
 
         return $finder;
-    }
-
-    /**
-     * Returns a enclosed mime type filter for the Symfony Finder filters
-     *
-     * This will only return the files that correspond the supplied mime types
-     *
-     * @return \Closure
-     */
-    public function mimeTypeFilter(array $allowedTypes)
-    {
-        return function (\SplFileInfo $file) use ($allowedTypes) {
-            $mime = image_type_to_mime_type(exif_imagetype($file));
-
-            return in_array($mime, $allowedTypes);
-        };
     }
 }

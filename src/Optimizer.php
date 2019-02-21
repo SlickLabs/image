@@ -29,7 +29,9 @@ class Optimizer
     protected $allowedMimeTypes = [
         'image/png',
         'image/jpeg',
-        'image/jpg'
+        'image/jpg',
+        'image/svg+xml',
+        'image/gif',
     ];
 
     /**
@@ -63,11 +65,11 @@ class Optimizer
      *
      * @param $postId
      */
-    public function __construct(int $width = 1600, int $height = 1600)
+    public function __construct(?int $width, ?int $height)
     {
         $this->logger = new DummyLogger();
-        $this->maxHeight = $width;
-        $this->maxWidth = $height;
+        $this->maxHeight = $width ?? 1600;
+        $this->maxWidth = $height ?? 1600;
     }
 
     /**
